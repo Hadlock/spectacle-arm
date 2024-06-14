@@ -23,8 +23,13 @@
 {
   NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
   for (SpectacleShortcut *shortcut in shortcuts) {
-    NSData *shortcutData = [NSKeyedArchiver archivedDataWithRootObject:shortcut];
-    NSString *shortcutName = shortcut.shortcutName;
+    NSError *error = nil;
+    NSData *shortcutData = [NSKeyedArchiver archivedDataWithRootObject:shortcut requiringSecureCoding:YES error:&error];
+
+    if (error) {
+      // Handle the error
+      NSLog(@"Error archiving data: %@", error);
+    }    NSString *shortcutName = shortcut.shortcutName;
     if (![shortcutData isEqualToData:[userDefaults dataForKey:shortcutName]]) {
       [userDefaults setObject:shortcutData forKey:shortcutName];
     }
@@ -65,7 +70,13 @@
 {
   NSMutableArray<SpectacleShortcut *> *shortcuts = [NSMutableArray new];
   for (NSData *shortcutData in dictionary.allValues) {
-    SpectacleShortcut *shortcut = [NSKeyedUnarchiver unarchiveObjectWithData:shortcutData];
+    NSError *error = nil;
+    SpectacleShortcut *shortcut = [NSKeyedUnarchiver unarchivedObjectOfClass:[SpectacleShortcut class] fromData:shortcutData error:&error];
+
+    if (error) {
+      // Handle the error
+      NSLog(@"Error unarchiving data: %@", error);
+    }
     [shortcuts addObject:[shortcut copyWithShortcutAction:action]];
   }
   return shortcuts;
